@@ -39,11 +39,12 @@ public class Observation {
 
     private Observation() {}
 
-    public static void createObservation(ObservationDisplayer plugin, Player player, Location viewLoc,
+    public static Observation createObservation(ObservationDisplayer plugin, Player player, Location viewLoc,
             String observation, Timestamp expiration) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         Observation obs = new Observation(plugin, -1, timestamp, player.getName(), viewLoc, observation, expiration, false, true);
         observations.add(obs);
+        return obs;
     }
 
     public static void loadTemporaryObservation(ObservationDisplayer plugin, int id, Timestamp timestamp,

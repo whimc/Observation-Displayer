@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import edu.whimc.observationdisplayer.events.ObserveEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -53,11 +55,15 @@ public class ObserveCommand implements CommandExecutor {
 
 		int days = plugin.getConfig().getInt("expiration-days");
 		Timestamp expiration = Timestamp.from(Instant.now().plus(days, ChronoUnit.DAYS));
-		Observation.createObservation(plugin, player, player.getLocation(), text, expiration);
-
+		Observation observation = Observation.createObservation(plugin, player, player.getLocation(), text, expiration);
 		Utils.msg(sender,
 				"&7Your observation has been placed:",
 				"  &8\"&f&l" + text + "&8\"");
+
+		// Call event
+		ObserveEvent observeEvent = new ObserveEvent(observation, player);
+		Bukkit.getServer().getPluginManager().callEvent(observeEvent);
+
 		return true;
 	}
 }
