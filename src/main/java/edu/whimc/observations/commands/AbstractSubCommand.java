@@ -1,4 +1,12 @@
-package edu.whimc.observationdisplayer.commands;
+package edu.whimc.observations.commands;
+
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.utils.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,15 +16,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
-
-import edu.whimc.observationdisplayer.ObservationDisplayer;
-import edu.whimc.observationdisplayer.utils.Utils;
-
 public abstract class AbstractSubCommand {
 
     private static final String PRIMARY = "&7";
@@ -25,31 +24,33 @@ public abstract class AbstractSubCommand {
     private static final String SEPARATOR = "&8";
     private static final String TEXT = "&f";
 
-    protected ObservationDisplayer plugin;
-    private String baseCommand;
-    private String subCommand;
-    private Permission permission;
+    protected Observations plugin;
+    private final String baseCommand;
+    private final String subCommand;
+    private final Permission permission;
 
     private String description = "";
-    private List<String[]> arguments = new ArrayList<>();
+    private final List<String[]> arguments = new ArrayList<>();
     private int minArgs = 0;
     private int maxArgs = 0;
     private boolean bypassArgumentChecks = false;
     private boolean requiresPlayer = false;
 
-    public AbstractSubCommand(ObservationDisplayer plugin, String baseCommand, String subCommand) {
+    public AbstractSubCommand(Observations plugin, String baseCommand, String subCommand) {
         this.plugin = plugin;
         this.baseCommand = baseCommand;
         this.subCommand = subCommand;
 
-        String permStr = ObservationDisplayer.PERM_PREFIX + "." + baseCommand.toLowerCase() + "." + subCommand.toLowerCase();
+        String permStr = Observations.PERM_PREFIX + "." + baseCommand.toLowerCase() + "." + subCommand.toLowerCase();
         Permission perm = new Permission(permStr);
-        perm.addParent(ObservationDisplayer.PERM_PREFIX + "." + baseCommand + ".*", true);
+        perm.addParent(Observations.PERM_PREFIX + "." + baseCommand + ".*", true);
         Bukkit.getPluginManager().addPermission(perm);
         this.permission = perm;
     }
 
-    protected void description(String desc) { this.description = desc; }
+    protected void description(String desc) {
+        this.description = desc;
+    }
 
     protected void arguments(String args) {
         String[] parsed_replaced = parseArgs(args, "[", "]", true);
@@ -66,13 +67,19 @@ public abstract class AbstractSubCommand {
         }
     }
 
-    protected void bypassArgumentChecks() { this.bypassArgumentChecks = true; }
+    protected void bypassArgumentChecks() {
+        this.bypassArgumentChecks = true;
+    }
 
-    protected void requiresPlayer() { this.requiresPlayer = true; }
+    protected void requiresPlayer() {
+        this.requiresPlayer = true;
+    }
 
-    protected List<String> onTabComplete(CommandSender sender, String[] args) { return Arrays.asList(); }
+    protected List<String> onTabComplete(CommandSender sender, String[] args) {
+        return Arrays.asList();
+    }
 
-    public List<String> executeOnTabComplete(CommandSender sender, String args[]) {
+    public List<String> executeOnTabComplete(CommandSender sender, String[] args) {
         if (!sender.hasPermission(getPermission()) || args.length > this.maxArgs) {
             return Arrays.asList();
         }

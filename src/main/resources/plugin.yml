@@ -3,9 +3,9 @@ version: ${project.version}
 description: ${project.description}
 author: Jack Henhapl
 api-version: 1.13
-main: edu.whimc.observationdisplayer.ObservationDisplayer
+main: edu.whimc.observations.Observations
 load: POSTWORLD
-depend: [HolographicDisplays]
+depend: [HolographicDisplays, ProtocolLib]
 softdepend: [Multiverse-Core]
 commands:
   observe:

@@ -1,109 +1,115 @@
-package edu.whimc.observationdisplayer.utils;
+package edu.whimc.observations.utils.sql;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.function.Consumer;
-
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.models.Observation;
+import edu.whimc.observations.observetemplate.models.ObservationTemplate;
+import edu.whimc.observations.observetemplate.models.ObservationType;
+import edu.whimc.observations.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-import edu.whimc.observationdisplayer.Observation;
-import edu.whimc.observationdisplayer.ObservationDisplayer;
+import java.sql.*;
+import java.util.function.Consumer;
 
 /**
  * Handles storing position data
- * @author Jack Henhapl
  *
+ * @author Jack Henhapl
  */
 public class Queryer {
 
-    /** Query for inserting an observation into the database. */
+    /**
+     * Query for inserting an observation into the database.
+     */
     private static final String QUERY_SAVE_OBSERVATION =
             "INSERT INTO whimc_observations " +
-            "(time, uuid, username, world, x, y, z, yaw, pitch, observation, active, expiration) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "(time, uuid, username, world, x, y, z, yaw, pitch, observation, active, expiration, category) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    /** Query for getting all observations from the database. */
+    /**
+     * Query for getting all observations from the database.
+     */
     private static final String QUERY_GET_ACTIVE_OBSERVATIONS =
             "SELECT * " +
-            "FROM whimc_observations " +
-            "WHERE active = 1 AND (expiration IS NULL OR (expiration - time > 0))";
+                    "FROM whimc_observations " +
+                    "WHERE active = 1 AND (expiration IS NULL OR (expiration - time > 0))";
 
-    /** Query for making an observation inactive. */
+    /**
+     * Query for making an observation inactive.
+     */
     private static final String QUERY_MAKE_OBSERVATION_INACTIVE =
             "UPDATE whimc_observations " +
-            "SET active=0 " +
-            "WHERE rowid=? AND active=1";
+                    "SET active=0 " +
+                    "WHERE rowid=? AND active=1";
 
     private static final String QUERY_MAKE_PLAYER_OBSERVATIONS_INACTIVE =
             "UPDATE whimc_observations " +
-            "SET active=0 " +
-            "WHERE username=? AND active=1";
+                    "SET active=0 " +
+                    "WHERE username=? AND active=1";
 
     private static final String QUERY_MAKE_WORLD_OBSERVATIONS_INACTIVE =
             "UPDATE whimc_observations " +
-            "SET active=0 " +
-            "WHERE active=1 AND world=?";
+                    "SET active=0 " +
+                    "WHERE active=1 AND world=?";
     private static final String QUERY_MAKE_OBSERVATIONS_INACTIVE =
             "UPDATE whimc_observations " +
-            "SET active=0 " +
-            "WHERE username=? AND active=1 AND world=?";
+                    "SET active=0 " +
+                    "WHERE username=? AND active=1 AND world=?";
 
     private static final String QUERY_MAKE_EXPIRED_INACTIVE =
             "UPDATE whimc_observations " +
-            "SET active=0 " +
-            "WHERE ? > expiration";
+                    "SET active=0 " +
+                    "WHERE ? > expiration";
 
     private static final String QUERY_SET_EXPIRATION =
             "UPDATE whimc_observations " +
-            "SET expiration=? " +
-            "WHERE rowid=?";
+                    "SET expiration=? " +
+                    "WHERE rowid=?";
 
     private static final String QUERY_GET_INACTIVE_ID =
             "SELECT * " +
-            "FROM whimc_observations " +
-            "WHERE rowid=?";
+                    "FROM whimc_observations " +
+                    "WHERE rowid=?";
 
     private static final String QUERY_GET_INACTIVE_RANGE =
             "SELECT * " +
-            "FROM whimc_observations " +
-            "WHERE rowid BETWEEN ? AND ?";
+                    "FROM whimc_observations " +
+                    "WHERE rowid BETWEEN ? AND ?";
 
     private static final String QUERY_GET_INACTIVE_TIME =
             "SELECT * " +
-            "FROM whimc_observations " +
-            "WHERE time BETWEEN ? AND ?";
+                    "FROM whimc_observations " +
+                    "WHERE time BETWEEN ? AND ?";
 
-    private ObservationDisplayer plugin;
-    private MySQLConnection sqlConnection;
+    private final Observations plugin;
+    private final MySQLConnection sqlConnection;
 
-    public Queryer(ObservationDisplayer plugin, Consumer<Queryer> callback) {
+    public Queryer(Observations plugin, Consumer<Queryer> callback) {
         this.plugin = plugin;
         this.sqlConnection = new MySQLConnection(plugin);
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             final boolean success = sqlConnection.initialize();
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                callback.accept(success ? this : null);
-            });
+            Bukkit.getScheduler().runTask(plugin, () -> callback.accept(success ? this : null));
         });
     }
 
     /**
      * Generated a PreparedStatement for saving a new observation.
+     *
      * @param connection MySQL Connection
-     * @param obs Observation to save
+     * @param obs        Observation to save
      * @return PreparedStatement
      * @throws SQLException
      */
     private PreparedStatement getStatement(Connection connection, Observation obs) throws SQLException {
         PreparedStatement statement = connection.prepareStatement(QUERY_SAVE_OBSERVATION, Statement.RETURN_GENERATED_KEYS);
+
+        String category = null;
+        if (obs.getTemplate() != null) {
+            category = obs.getTemplate().getType().name();
+        }
 
         Location loc = obs.getViewLocation();
         String world = loc.getWorld().getName();
@@ -125,14 +131,49 @@ public class Queryer {
         statement.setString(10, obs.getObservation());
         statement.setBoolean(11, true);
         statement.setLong(12, obs.getExpiration().getTime());
+        statement.setString(13, category);
 
         return statement;
     }
 
+    private void loadObservationFromResultSet(ResultSet results, int id, boolean isTemporary) throws SQLException {
+        Timestamp timestamp = new Timestamp(results.getLong("time"));
+        String name = results.getString("username");
+        String worldName = results.getString("world");
+        double x = results.getDouble("x");
+        double y = results.getDouble("y");
+        double z = results.getDouble("z");
+        float yaw = results.getFloat("yaw");
+        float pitch = results.getFloat("pitch");
+        String observation = results.getString("observation");
+        long expNum = results.getLong("expiration");
+        Timestamp expiration = expNum == 0 ? null : new Timestamp(expNum);
+        String category = results.getString("category");
+        ObservationTemplate template = category == null ? null : this.plugin.getTemplateManager().getTemplate(ObservationType.valueOf(category));
+
+        sync(() -> {
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                Utils.debug("  - " + id + " | world '" + worldName + "' not found -> skipping");
+                return;
+            }
+            Location loc = new Location(world, x, y, z, yaw, pitch);
+
+            Utils.debug("  - " + id +
+                    " | " + timestamp.getTime() +
+                    " | " + name +
+                    " | (" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ")" +
+                    " | " + observation + " | " +
+                    " | " + (expiration == null ? "n/a" : expiration.getTime()));
+            Observation.loadObservation(this.plugin, id, timestamp, name, loc, observation, expiration, template, isTemporary);
+        });
+    }
+
     /**
      * Stores an observation into the database and returns the obervation's ID
+     *
      * @param observation Observation to save
-     * @param callback Function to call once the observation has been saved
+     * @param callback    Function to call once the observation has been saved
      */
     public void storeNewObservation(Observation observation, Consumer<Integer> callback) {
         async(() -> {
@@ -171,34 +212,7 @@ public class Queryer {
                         Utils.debug("Observations found:");
                         while (results.next()) {
                             int id = results.getInt("rowid");
-                            Timestamp timestamp = new Timestamp(results.getLong("time"));
-                            String name = results.getString("username");
-                            String worldName = results.getString("world");
-                            double x = results.getDouble("x");
-                            double y = results.getDouble("y");
-                            double z = results.getDouble("z");
-                            float yaw = results.getFloat("yaw");
-                            float pitch = results.getFloat("pitch");
-                            String observation = results.getString("observation");
-                            long expNum = results.getLong("expiration");
-                            Timestamp expiration = expNum == 0 ? null : new Timestamp(expNum);
-
-                            sync(() -> {
-                                World world = Bukkit.getWorld(worldName);
-                                if (world == null) {
-                                    Utils.debug("  - "  + id + " | world '" + worldName + "' not found -> skipping");
-                                    return;
-                                }
-                                Location loc = new Location(world, x, y, z, yaw, pitch);
-
-                                Utils.debug("  - " + id +
-                                        " | " + timestamp.getTime() +
-                                        " | " + name +
-                                        " | (" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ")" +
-                                        " | " + observation + " | " +
-                                        " | " + (expiration == null ? "n/a" : expiration.getTime()));
-                                Observation.loadObservation(plugin, id, timestamp, name, loc, observation, expiration);
-                            });
+                            loadObservationFromResultSet(results, id, false);
                         }
                         sync(callback);
                     }
@@ -210,7 +224,8 @@ public class Queryer {
     }
 
     /**
-     * Makes an obseration inactive in the database.
+     * Makes an observation inactive in the database.
+     *
      * @param id Id of the observation
      */
     public void makeSingleObservationInactive(int id, Runnable callback) {
@@ -252,7 +267,7 @@ public class Queryer {
                         statement.setString(ind++, player);
                     }
                     if (world != null) {
-                        statement.setString(ind++, world);
+                        statement.setString(ind, world);
                     }
                     sync(callback, statement.executeUpdate());
                 }
@@ -320,34 +335,7 @@ public class Queryer {
                                 continue;
                             }
                             count++;
-                            Timestamp timestamp = new Timestamp(results.getLong("time"));
-                            String name = results.getString("username");
-                            String worldName = results.getString("world");
-                            double x = results.getDouble("x");
-                            double y = results.getDouble("y");
-                            double z = results.getDouble("z");
-                            float yaw = results.getFloat("yaw");
-                            float pitch = results.getFloat("pitch");
-                            String observation = results.getString("observation");
-                            long expNum = results.getLong("expiration");
-                            Timestamp expiration = expNum == 0 ? null : new Timestamp(expNum);
-
-                            sync(() -> {
-                                World world = Bukkit.getWorld(worldName);
-                                if (world == null) {
-                                    Utils.debug("  - "  + id + " | world '" + worldName + "' not found -> skipping");
-                                    return;
-                                }
-                                Location loc = new Location(world, x, y, z, yaw, pitch);
-
-                                Utils.debug("  - " + id +
-                                        " | " + timestamp.getTime() +
-                                        " | " + name +
-                                        " | (" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ")" +
-                                        " | " + observation + " | " +
-                                        " | " + (expiration == null ? "n/a" : expiration.getTime()));
-                                Observation.loadTemporaryObservation(plugin, id, timestamp, name, loc, observation, expiration);
-                            });
+                            loadObservationFromResultSet(results, id, true);
                         }
                         sync(callback, count);
                     }
@@ -374,9 +362,7 @@ public class Queryer {
     }
 
     private <T> void sync(Consumer<T> cons, T val) {
-        Bukkit.getScheduler().runTask(this.plugin, () -> {
-            cons.accept(val);
-        });
+        Bukkit.getScheduler().runTask(this.plugin, () -> cons.accept(val));
     }
 
     private void sync(Runnable runnable) {

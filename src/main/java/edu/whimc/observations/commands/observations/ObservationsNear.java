@@ -1,19 +1,18 @@
-package edu.whimc.observationdisplayer.commands.observations;
+package edu.whimc.observations.commands.observations;
+
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.commands.AbstractSubCommand;
+import edu.whimc.observations.models.Observation;
+import edu.whimc.observations.utils.Utils;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import edu.whimc.observationdisplayer.Observation;
-import edu.whimc.observationdisplayer.ObservationDisplayer;
-import edu.whimc.observationdisplayer.commands.AbstractSubCommand;
-import edu.whimc.observationdisplayer.utils.Utils;
-
 public class ObservationsNear extends AbstractSubCommand {
 
-    public ObservationsNear(ObservationDisplayer plugin, String baseCommand, String subCommand) {
+    public ObservationsNear(Observations plugin, String baseCommand, String subCommand) {
         super(plugin, baseCommand, subCommand);
         super.description("Lists observations near you");
         super.arguments("radius");

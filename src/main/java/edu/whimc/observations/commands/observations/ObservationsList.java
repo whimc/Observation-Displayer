@@ -1,16 +1,15 @@
-package edu.whimc.observationdisplayer.commands.observations;
+package edu.whimc.observations.commands.observations;
+
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.commands.AbstractSubCommand;
+import edu.whimc.observations.utils.Utils;
+import org.bukkit.command.CommandSender;
 
 import java.util.List;
 
-import org.bukkit.command.CommandSender;
-
-import edu.whimc.observationdisplayer.ObservationDisplayer;
-import edu.whimc.observationdisplayer.commands.AbstractSubCommand;
-import edu.whimc.observationdisplayer.utils.Utils;
-
 public class ObservationsList extends AbstractSubCommand {
 
-    public ObservationsList(ObservationDisplayer plugin, String baseCommand, String subCommand) {
+    public ObservationsList(Observations plugin, String baseCommand, String subCommand) {
         super(plugin, baseCommand, subCommand);
         super.description("Lists all active observations");
         super.arguments("[-p <player>] [-w <\"world...\">]");

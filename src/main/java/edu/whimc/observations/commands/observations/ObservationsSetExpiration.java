@@ -1,19 +1,18 @@
-package edu.whimc.observationdisplayer.commands.observations;
+package edu.whimc.observations.commands.observations;
+
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.commands.AbstractSubCommand;
+import edu.whimc.observations.models.Observation;
+import edu.whimc.observations.utils.Utils;
+import org.bukkit.command.CommandSender;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.command.CommandSender;
-
-import edu.whimc.observationdisplayer.Observation;
-import edu.whimc.observationdisplayer.ObservationDisplayer;
-import edu.whimc.observationdisplayer.commands.AbstractSubCommand;
-import edu.whimc.observationdisplayer.utils.Utils;
-
 public class ObservationsSetExpiration extends AbstractSubCommand {
 
-    public ObservationsSetExpiration(ObservationDisplayer plugin, String baseCommand, String subCommand) {
+    public ObservationsSetExpiration(Observations plugin, String baseCommand, String subCommand) {
         super(plugin, baseCommand, subCommand);
         super.description("Sets or removes the expiration of an observation");
         super.arguments("id \"expiration...\"|'none'");
@@ -34,8 +33,8 @@ public class ObservationsSetExpiration extends AbstractSubCommand {
 
         Timestamp newExpiration = Utils.parseDate(args[1]);
         if (!args[1].equalsIgnoreCase("none") && newExpiration == null) {
-            Utils.msg(sender,"&cCould not parse date \"&4" + args[1] + "&c\"!",
-                             "&7Example date: \"" + Utils.getDateNow() + "\"");
+            Utils.msg(sender, "&cCould not parse date \"&4" + args[1] + "&c\"!",
+                    "&7Example date: \"" + Utils.getDateNow() + "\"");
             return true;
         }
 

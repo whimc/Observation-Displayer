@@ -1,18 +1,17 @@
-package edu.whimc.observationdisplayer.commands.observations;
+package edu.whimc.observations.commands.observations;
 
-import java.util.List;
-
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.commands.AbstractSubCommand;
+import edu.whimc.observations.models.Observation;
+import edu.whimc.observations.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import edu.whimc.observationdisplayer.Observation;
-import edu.whimc.observationdisplayer.ObservationDisplayer;
-import edu.whimc.observationdisplayer.commands.AbstractSubCommand;
-import edu.whimc.observationdisplayer.utils.Utils;
+import java.util.List;
 
 public class ObservationsTeleport extends AbstractSubCommand {
 
-    public ObservationsTeleport(ObservationDisplayer plugin, String baseCommand, String subCommand) {
+    public ObservationsTeleport(Observations plugin, String baseCommand, String subCommand) {
         super(plugin, baseCommand, subCommand);
         super.description("Teleports you to an observation");
         super.arguments("id");

@@ -1,19 +1,18 @@
-package edu.whimc.observationdisplayer.commands.observations;
+package edu.whimc.observations.commands.observations;
+
+import edu.whimc.observations.Observations;
+import edu.whimc.observations.commands.AbstractSubCommand;
+import edu.whimc.observations.models.Observation;
+import edu.whimc.observations.utils.Utils;
+import org.bukkit.command.CommandSender;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.command.CommandSender;
-
-import edu.whimc.observationdisplayer.Observation;
-import edu.whimc.observationdisplayer.ObservationDisplayer;
-import edu.whimc.observationdisplayer.commands.AbstractSubCommand;
-import edu.whimc.observationdisplayer.utils.Utils;
-
 public class ObservationsReactivate extends AbstractSubCommand {
 
-    public ObservationsReactivate(ObservationDisplayer plugin, String baseCommand, String subCommand) {
+    public ObservationsReactivate(Observations plugin, String baseCommand, String subCommand) {
         super(plugin, baseCommand, subCommand);
         super.description("Temporarily reactivate inactive observations");
         super.arguments("id");
@@ -77,7 +76,6 @@ public class ObservationsReactivate extends AbstractSubCommand {
                 startTime = temp;
             }
 
-            // TODO Reactivate range of observations by date
             String formattedStart = Utils.getDate(startTime);
             String formattedEnd = Utils.getDate(endTime);
             Utils.msg(sender, "&aTemporarily reactivating observations between \"&2" + formattedStart + "&a\" and \"&2" + formattedEnd + "&a\"!");
@@ -116,7 +114,7 @@ public class ObservationsReactivate extends AbstractSubCommand {
 
     private void invalidTime(CommandSender sender, String date) {
         Utils.msg(sender, "&c\"&4" + date + "&c\" is an invalid date! Make sure you surround your dates in quotes!",
-                          "&7Example date: \"" + Utils.getDateNow() + "\"");
+                "&7Example date: \"" + Utils.getDateNow() + "\"");
     }
 
     private void invalidNumber(CommandSender sender, String id) {

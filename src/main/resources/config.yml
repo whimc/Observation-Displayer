@@ -1,9 +1,158 @@
+# ###############################
+# The observation types are:
+# ANALOGY, COMPARATIVE, DESCRIPTIVE, FACTUAL, INFERENCE
+# ##############################
+
 debug: false
 expiration-days: 7
 mysql:
-    host: localhost
-    port: 3306
-    database: minecraft
-    username: user
-    password: pass
-    
+  host: localhost
+  port: 3306
+  database: minecraft
+  username: user
+  password: pass
+
+template-gui:
+  filler-item: white_stained_glass_pane
+  inventory-name: "&lChoose an observation type!"
+  rows: 4
+  cancel:
+    item: barrier
+    position: 27
+    name: "&cCancel"
+    lore:
+      - "&7Cancel your observation"
+  uncategorized:
+    item: oak_sign
+    position: 35
+    name: '&7Uncategorized Observation'
+    lore:
+      - '&fMake a custom observation without a template.'
+      - ''
+      - '&8&oThis can also be done with &7&o/observe <observation>'
+
+templates:
+  ANALOGY:
+    gui:
+      item: green_concrete
+      position: 9
+      name: '&aAnalogy Observation'
+      lore:
+      - '&fComparing natural phenomena with another similar structure or object.'
+      - '&fAn advanced form of comparative.'
+      - ''
+      - '&7Example:'
+      - '  &f&oThe trees are like the ones in real-life'
+    prompts:
+    - prompt: The &7{}&r is/are like &7{}&r.
+      worlds:
+        world:
+          0:
+          - trees
+          - clouds
+          - mountains
+          1:
+          - the ones in real-life
+          - squares
+          - something split (oreo?)
+  COMPARATIVE:
+    gui:
+      item: blue_concrete
+      position: 11
+      name: '&bComparative Observation'
+      lore:
+      - '&fComparing one natural phenomena to another; expectations are violated.'
+      - ''
+      - '&7Example:'
+      - '  &f&oThe grass is different from Earth.'
+    prompts:
+    - prompt: The &7{}&r is &7{}&r.
+      worlds:
+        world:
+          0:
+          - grass
+          - trees
+          - moon
+          1:
+          - different from Earth
+          - taller than ones on Earth
+          - different colored than Earth
+  DESCRIPTIVE:
+    gui:
+      item: orange_concrete
+      position: 13
+      name: '&6Descriptive Observation'
+      lore:
+      - '&fRelated to color, temperature, quantity, and other physical attributes.'
+      - ''
+      - '&7Example:'
+      - '  &f&o There are lots of trees.'
+    prompts:
+    - prompt: There are lots of &7{}&r.
+      worlds:
+        world:
+          0:
+          - coral
+          - trees
+    - prompt: There are no &7{}&r.
+      worlds:
+        world:
+          0:
+          - animals
+          - plants
+    - prompt: It is really &7{}&r.
+      worlds:
+        world:
+          0:
+          - hot
+          - cold
+    - prompt: The &7{}&r is &7{}&r.
+      worlds:
+        world:
+          0:
+          - moon
+          - water level
+          1:
+          - large
+          - missing
+          - low
+          - high
+  FACTUAL:
+    gui:
+      item: purple_concrete
+      position: 15
+      name: '&9Factual Observation'
+      lore:
+      - '&fNoun statements without elaborations.'
+      - ''
+      - '&7Example:'
+      - '  &f&oThere are animals.'
+    description: Noun statements without elaborations.
+    prompts:
+    - prompt: There is/are &7{}&r.
+      worlds:
+        world:
+          0:
+          - animals
+          - vegetables
+          - mountains
+  INFERENCE:
+    gui:
+      item: pink_concrete
+      position: 17
+      name: '&dInference Observation'
+      lore:
+      - '&fA hypothesis or explanation is proposed.'
+      - ''
+      - '&7Example:'
+      - '  &f&oThe plants grow because the sun provides nutrients.'
+    prompts:
+    - prompt: The &7{}&r because &7{}&r.
+      worlds:
+        world:
+          0:
+          - plants grow
+          - is no plant life
+          1:
+          - the sun provides nutrients
+          - the temperatures are too cold to sustain life
